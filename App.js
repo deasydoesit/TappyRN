@@ -7,10 +7,11 @@ import {
   Platform
 } from "react-native";
 import { BleManager } from "react-native-ble-plx";
+import './global';
+const Web3 = require('web3');
+//const web3 = new Web3();
 
-type Props = {};
-
-export default class App extends Component<Props> {
+export default class App extends Component {
   constructor() {
     super()
     this.manager = new BleManager()
@@ -33,6 +34,12 @@ export default class App extends Component<Props> {
           subscription.remove();
       }
     }, true);
+
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider('https://mainnet.infura.io/')
+    );
+    // web3.setProvider(new web3.providers.HttpProvider('https://ropsten.infura.io/rqmgop6P5BDFqz6yfGla'));
+    this.info(web3.version);
   }
 
   scanAndConnect() {
