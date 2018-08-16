@@ -9,13 +9,13 @@ import {
 import { BleManager } from "react-native-ble-plx";
 import './global';
 const Web3 = require('web3');
-//const web3 = new Web3();
+const EthereumTx = require('ethereumjs-tx');
 
 export default class App extends Component {
   constructor() {
     super()
     this.manager = new BleManager()
-    this.state = {info: "", values: {}}
+    this.state = {info: "", values: {}, web3: "", trans: ""}
     this.text = ""
   }
 
@@ -38,8 +38,26 @@ export default class App extends Component {
     const web3 = new Web3(
       new Web3.providers.HttpProvider('https://mainnet.infura.io/')
     );
-    // web3.setProvider(new web3.providers.HttpProvider('https://ropsten.infura.io/rqmgop6P5BDFqz6yfGla'));
-    this.info(web3.version);
+    this.setState({web3: web3.version});
+
+    const privateKey = Buffer.from('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
+
+    const txParams = {
+      nonce: '0x00',
+      gasPrice: '0x09184e72a000', 
+      gasLimit: '0x2710',
+      to: '0x0000000000000000000000000000000000000000', 
+      value: '0x00', 
+      data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+      // EIP 155 chainId - mainnet: 1, ropsten: 3
+      chainId: 3
+    }
+
+    const tx = new EthereumTx(txParams)
+    tx.sign(privateKey)
+    const serializedTx = tx.serialize()
+    this.setState({trans: serializedTx});
+
   }
 
   scanAndConnect() {
@@ -80,6 +98,8 @@ export default class App extends Component {
       <SafeAreaView style={styles.container}>
         <Text style={styles.welcome}>Welcome to React Native!</Text>
         <Text style={styles.welcome}>{this.state.info}</Text>
+        <Text style={styles.welcome}>{this.state.web3}</Text>
+        <Text style={styles.welcome}>{this.state.trans}</Text>
       </SafeAreaView>
     );
   }
@@ -98,5 +118,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333333',
     marginBottom: 5,
-  },
+  }
 });
