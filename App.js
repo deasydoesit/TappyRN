@@ -8,14 +8,14 @@ import {
 } from "react-native";
 import { BleManager } from "react-native-ble-plx";
 import './global';
-const Web3 = require('web3');
+
 const EthereumTx = require('ethereumjs-tx');
 
 export default class App extends Component {
   constructor() {
     super()
     this.manager = new BleManager()
-    this.state = {info: "", values: {}, web3: "", trans: ""}
+    this.state = {info: "", values: {}, trans: ""}
     this.text = ""
   }
 
@@ -35,11 +35,6 @@ export default class App extends Component {
       }
     }, true);
 
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider('https://mainnet.infura.io/')
-    );
-    this.setState({web3: web3.version});
-
     const privateKey = Buffer.from('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
 
     const txParams = {
@@ -49,7 +44,6 @@ export default class App extends Component {
       to: '0x0000000000000000000000000000000000000000', 
       value: '0x00', 
       data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
-      // EIP 155 chainId - mainnet: 1, ropsten: 3
       chainId: 3
     }
 
@@ -58,6 +52,8 @@ export default class App extends Component {
     const serializedTx = tx.serialize()
     this.setState({trans: serializedTx});
 
+    const base64tx = global.btoa(serializedTx);
+    this.setState({trans: base64tx});
   }
 
   scanAndConnect() {
