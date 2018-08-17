@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import { StyleSheet, Text, SafeAreaView } from "react-native";
 import { BleManager } from "react-native-ble-plx";
 import './global';
+import { BigNumber } from 'bignumber.js';
 
 // Instantiate ethereumjs-tx for signing transactions
 const EthereumTx = require('ethereumjs-tx');
@@ -15,7 +16,8 @@ export default class App extends Component {
       info: "", 
       values: {}, 
       trans: "", 
-      serialtx: ""
+      serialtx: "",
+      txp: {}
     }
   }
 
@@ -40,22 +42,29 @@ export default class App extends Component {
     }, true);
 
     // Sign tx
-    const privateKey = Buffer.from('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex');
+    const from = "0x1cc1b3553dcfA565d9FE727ED9F0483269eF3B7F";
+    const privateKey = Buffer.from('', 'hex');
+    const to = "0xb191d7e1ff7c4aff025d3b1bf57d0b24be74f6ba";
+    const gasPrice = "0x" + new BigNumber("30000000000").toString(16);
+    const gasLimit = "0x" + new BigNumber(50000).toString(16);
+    const value = "0x" + new BigNumber("100000000000000000").toString(16);
+    const nonce = "0x" + new BigNumber(1).toString(16);
 
     const txParams = {
-      nonce: '0x00',
-      gasPrice: '0x09184e72a000', 
-      gasLimit: '0x2710',
-      to: '0x0000000000000000000000000000000000000000', 
-      value: '0x00', 
-      data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+      from,
+      to,
+      nonce,
+      gasPrice,
+      gasLimit,
+      value,
       chainId: 3
-    }
+    };
+    this.setState({ txp: txParams });
 
     const tx = new EthereumTx(txParams);
     tx.sign(privateKey);
-    const serializedTx = tx.serialize();
-    this.setState({trans: serializedTx, serialtx: serializedTx});;
+    const serializedTx = tx.serialize().toString('hex');
+    this.setState({ serialtx: serializedTx });
 
     const base64tx = global.btoa(serializedTx);
     this.setState({trans: base64tx});
@@ -101,8 +110,8 @@ export default class App extends Component {
   render() {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.welcome}>Welcome to React Native!</Text>
-        <Text style={styles.welcome}>{this.state.info}</Text>
+        <Text style={styles.welcome}>Welcome to TappyRN!</Text>
+        <Text style={styles.welcome}>{this.state.txp.nonce}</Text>
         <Text style={styles.welcome}>{this.state.serialtx}</Text>
         <Text style={styles.welcome}>{this.state.trans}</Text>
       </SafeAreaView>
