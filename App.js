@@ -1,12 +1,16 @@
 // Dependencies
 import React, { Component } from "react";
-import { StyleSheet, Text, SafeAreaView } from "react-native";
-import { BleManager } from "react-native-ble-plx";
-import './global';
-import { BigNumber } from 'bignumber.js';
-
-// Instantiate ethereumjs-tx for signing transactions
-const EthereumTx = require('ethereumjs-tx');
+import { 
+  AppRegistry, 
+  StyleSheet, 
+  Text, 
+  SafeAreaView
+} from "react-native";
+import { BleManager } from "react-native-ble-plx"; // BLE dependency
+import QRCodeScanner from 'react-native-qrcode-scanner'; // QR Code Scanner dependency
+import './global'; // Injects node globals into React Native global scope
+import { BigNumber } from 'bignumber.js'; // Required for Ethereum 
+const EthereumTx = require('ethereumjs-tx'); // Instantiate ethereumjs-tx for signing transactions
 
 export default class App extends Component {
   constructor() {
@@ -19,6 +23,10 @@ export default class App extends Component {
       serialtx: "",
       txp: {}
     }
+  }
+
+  onSuccess(e) {
+    this.info(e.data);
   }
 
   // Helper function to update this.state.info
@@ -43,7 +51,7 @@ export default class App extends Component {
 
     // Sign tx
     const from = "0x1cc1b3553dcfA565d9FE727ED9F0483269eF3B7F";
-    const privateKey = Buffer.from('', 'hex');
+    const privateKey = Buffer.from('4D7EF8B26D6EBFF2C0AC9CA1D4657D152578B08BB9ADEF56628D45376CC61A5A', 'hex');
     const to = "0xb191d7e1ff7c4aff025d3b1bf57d0b24be74f6ba";
     const gasPrice = "0x" + new BigNumber("30000000000").toString(16);
     const gasLimit = "0x" + new BigNumber(50000).toString(16);
@@ -107,30 +115,69 @@ export default class App extends Component {
     });
   }
 
+  // render() {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <Text style={styles.welcome}>Welcome to TappyRN!</Text>
+  //       <Text style={styles.welcome}>{this.state.txp.nonce}</Text>
+  //       <Text style={styles.welcome}>{this.state.serialtx}</Text>
+  //       <Text style={styles.welcome}>{this.state.trans}</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
   render() {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.welcome}>Welcome to TappyRN!</Text>
-        <Text style={styles.welcome}>{this.state.txp.nonce}</Text>
-        <Text style={styles.welcome}>{this.state.serialtx}</Text>
-        <Text style={styles.welcome}>{this.state.trans}</Text>
-      </SafeAreaView>
+      <QRCodeScanner
+        onRead={this.onSuccess.bind(this)}
+        topContent={
+          <Text style={styles.centerText}>
+            Go to <Text style={styles.textBold}>wikipedia.org/wiki/QR_code</Text> on your computer and scan the QR code.
+          </Text>
+        }
+        bottomContent={
+          <Text style={styles.centerText}>
+            Value: <Text style={styles.textBold}>{this.state.info}</Text>
+          </Text>
+        }
+      />
     );
   }
 }
 
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1
+//   },
+//   welcome: {
+//     fontSize: 20,
+//     textAlign: 'center',
+//     margin: 10,
+//   },
+//   instructions: {
+//     textAlign: 'center',
+//     color: '#333333',
+//     marginBottom: 5,
+//   }
+// });
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
+  centerText: {
+    flex: 1,
+    fontSize: 18,
+    padding: 32,
+    color: '#777',
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  textBold: {
+    fontWeight: '500',
+    color: '#000',
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  }
+  buttonText: {
+    fontSize: 21,
+    color: 'rgb(0,122,255)',
+  },
+  buttonTouchable: {
+    padding: 16,
+  },
 });
+
+AppRegistry.registerComponent('default', () => ScanScreen);
