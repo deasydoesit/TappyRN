@@ -20,7 +20,9 @@ export default class SignTx extends Component {
       trans: "", 
       serialtx: "",
       txp: {},
-      deviceId: ""
+      deviceId: "",
+      value: navigation.getParam('value', 'NO-VALUE'),
+      nonce: 2
     }
   }
 
@@ -60,8 +62,39 @@ export default class SignTx extends Component {
     });
   }
 
+  signTx = () => {
+    let oneEthInWei = new BigNumber("1000000000000000000");
+    let qrval = oneEthInWei.multipliedBy(this.state.val);
+
+    const from = "0x1cc1b3553dcfA565d9FE727ED9F0483269eF3B7F";
+    const privateKey = Buffer.from('4D7EF8B26D6EBFF2C0AC9CA1D4657D152578B08BB9ADEF56628D45376CC61A5A', 'hex');
+    const to = "0xb191d7e1ff7c4aff025d3b1bf57d0b24be74f6ba";
+    const gasPrice = "0x" + new BigNumber("30000000000").toString(16);
+    const gasLimit = "0x" + new BigNumber("50000").toString(16); //changed 50000 from num to string
+    const value = "0x" + qrval.toString(16);
+    const nonce = "0x" + new BigNumber(this.state.nonce).toString(16);
+
+    const txParams = {
+      from,
+      to,
+      nonce,
+      gasPrice,
+      gasLimit,
+      value,
+      chainId: 3
+    };
+
+    const tx = new EthereumTx(txParams);
+    tx.sign(privateKey);
+    const serializedTx = tx.serialize().toString('hex');
+
+    const base64tx = global.btoa(serializedTx);
+    this.setState({trans: base64tx, nonce: this.state.nonce + 1});
+  }
+
   sendTx = () => {
-    this.manager.writeCharacteristicWithResponseForDevice(this.state.deviceId, '12ab', '34cd', 'aGVsbG8gdGFwcHk=')
+    this.signTx();
+    this.manager.writeCharacteristicWithResponseForDevice(this.state.deviceId, '12ab', '34cd', this.state.trans)
       .then((characteristic) => {
         this.info(characteristic.value);
         return 
