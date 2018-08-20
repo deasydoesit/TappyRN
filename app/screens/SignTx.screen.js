@@ -11,8 +11,8 @@ import { BigNumber } from 'bignumber.js';
 const EthereumTx = require('ethereumjs-tx');
 
 export default class SignTx extends Component {
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.manager = new BleManager()
     this.state = {
       info: "", 

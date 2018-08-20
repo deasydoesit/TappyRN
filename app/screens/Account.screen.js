@@ -4,8 +4,24 @@ import {
   Text,
   View
 } from 'react-native';
+import '../../global.js';
+const Web3 = require('web3');
 
 export default class Account extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+
+    }
+  }
+
+  componentWillMount () {
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider('https://mainnet.infura.io/')
+    );
+    console.log(web3.version);
+  }
+
   render() {
     return (
       <View style={styles.container}>
