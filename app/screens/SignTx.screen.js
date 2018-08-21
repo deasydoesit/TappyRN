@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {
+  AsyncStorage,
   StyleSheet,
   Text,
   View,
@@ -19,23 +20,51 @@ export default class SignTx extends Component {
       trans: "", 
       deviceId: "",
       value: 0,
-      nonce: 5,
+      nonce: 11,
       qrval: 0
     }
   }
 
   componentWillMount() { 
-    console.log('hello willmount')
+
     const subscription = this.manager.onStateChange((state) => {
       if (state === 'PoweredOn') {
-        console.log('hello ifpower')
           this.scanAndConnect();
           subscription.remove();
       }
     }, true);
 
+    this.retrieveData();
+
     const { navigation } = this.props;
     this.setState({ value: navigation.getParam('value', 'NO-VALUE') });
+  }
+
+  storeData = async () => {
+    try {
+      await AsyncStorage.setItem('nonce', this.state.nonce.toString());
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  retrieveData = async () => {
+    try {
+      const nonce = await AsyncStorage.getItem('nonce');
+      if (nonce !== null) {
+        this.setState( {nonce: nonce} );
+      }
+     } catch (error) {
+       console.log(error);
+     }
+  }
+
+  info(message) {
+    this.setState({info: message});
+  }
+
+  error(message) {
+    this.setState({info: "ERROR: " + message});
   }
 
   scanAndConnect() {
@@ -103,20 +132,14 @@ export default class SignTx extends Component {
     this.manager.writeCharacteristicWithResponseForDevice(this.state.deviceId, '12ab', '34cd', this.state.trans)
       .then((characteristic) => {
         this.info(characteristic.value);
+        this.setState({ nonce: parseInt(this.state.nonce) + 1 });
+        this.storeData();
+        this.manager.destroy();
         return 
       })
       .catch((error) => {
         this.error(error.message);
       });
-    this.setState({ nonce: this.state.nonce + 1 });
-  }
-
-  info(message) {
-    this.setState({info: message});
-  }
-
-  error(message) {
-    this.setState({info: "ERROR: " + message});
   }
 
   render() {
