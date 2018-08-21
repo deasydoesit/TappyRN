@@ -26,6 +26,8 @@ export default class SignTx extends Component {
   }
 
   componentWillMount() { 
+    const { navigation } = this.props;
+    this.setState({ value: navigation.getParam('value', 'NO-VALUE') });
 
     const subscription = this.manager.onStateChange((state) => {
       if (state === 'PoweredOn') {
@@ -35,9 +37,6 @@ export default class SignTx extends Component {
     }, true);
 
     this.retrieveData();
-
-    const { navigation } = this.props;
-    this.setState({ value: navigation.getParam('value', 'NO-VALUE') });
   }
 
   storeData = async () => {
@@ -94,6 +93,11 @@ export default class SignTx extends Component {
         return
       }
     });
+  }
+
+  destroyAndGoBack = () => {
+    this.manager.destroy();
+    this.props.navigation.navigate('Tabs');
   }
 
   signTx = () => {
@@ -169,7 +173,7 @@ export default class SignTx extends Component {
         />
         <Button
           title="Back To Pay"
-          onPress={() => this.props.navigation.navigate('Tabs')}
+          onPress={this.destroyAndGoBack}
         />
       </View>
     );
