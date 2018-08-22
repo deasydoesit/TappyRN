@@ -4,11 +4,13 @@ import {
   StyleSheet,
   Text,
   View,
-  Button
+  Button,
+  Linking
 } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import '../../global.js'; 
 import { BigNumber } from 'bignumber.js'; 
+
 const EthereumTx = require('ethereumjs-tx');
 
 export default class SignTx extends Component {
@@ -17,11 +19,13 @@ export default class SignTx extends Component {
     this.manager = new BleManager()
     this.state = {
       info: "", 
+      serialize: "",
       trans: "", 
       deviceId: "",
       value: 0,
-      nonce: 11,
-      qrval: 0
+      nonce: 15,
+      qrval: 0,
+      txHashUrl: ""
     }
   }
 
@@ -72,7 +76,7 @@ export default class SignTx extends Component {
 
       if (error) {
         this.error(error.message);
-        return
+        return;
       }
 
       if (device.name === 'tappy' || device.name === 'Tappy' || device.name === 'MyDevice') {
@@ -80,8 +84,7 @@ export default class SignTx extends Component {
         this.manager.stopDeviceScan(); 
         device.connect()
           .then((device) => {
-            console.log('hello device')
-            return device.discoverAllServicesAndCharacteristics()
+            return device.discoverAllServicesAndCharacteristics();
           })
           .then((device) => {
             this.setState({deviceId: device.id});
@@ -90,7 +93,7 @@ export default class SignTx extends Component {
           .catch((error) => {
             this.error(error.message);
           })
-        return
+        return;
       }
     });
   }
@@ -129,17 +132,34 @@ export default class SignTx extends Component {
     const serializedTx = tx.serialize().toString('hex');
 
     const base64tx = global.btoa(serializedTx);
-    this.setState({trans: base64tx});
+    this.setState({trans: base64tx, serialize: serializedTx});
   }
 
   sendTx = () => {
     this.manager.writeCharacteristicWithResponseForDevice(this.state.deviceId, '12ab', '34cd', this.state.trans)
       .then((characteristic) => {
-        this.info(characteristic.value);
+        console.log(characteristic.value);
         this.setState({ nonce: parseInt(this.state.nonce) + 1 });
         this.storeData();
+        setTimeout(() => {
+          this.readTxHash();
+          return;
+        }, 2000);
+      })
+      .catch((error) => {
+        this.error(error.message);
+      });
+  }
+
+  readTxHash = () => {
+    this.manager.readCharacteristicForDevice(this.state.deviceId, '12ab', '34cd') 
+      .then((characteristic) => {
+        console.log(characteristic.value);
+        this.setState({ info: characteristic.value });
+        let res = Buffer.from(characteristic.value, 'base64').toString('ascii');
         this.manager.destroy();
-        return 
+        Linking.openURL(res).catch(err => console.error('An error occurred', err));
+        return;
       })
       .catch((error) => {
         this.error(error.message);
@@ -165,7 +185,7 @@ export default class SignTx extends Component {
           Nonce: {this.state.nonce}
         </Text>
         <Text style={styles.title}>
-          trans: {this.state.trans}
+          Serialize: {this.state.serialize}
         </Text>
         <Button
           title="Pay"
