@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   Text,
-  View
+  View,
+  Image
 } from 'react-native';
 import '../../global';
 
@@ -28,8 +29,11 @@ export default class Account extends Component {
   render() {
     return (
       <View style={styles.container}>
+        <Image 
+          source={require('../assets/images/tappy_brand_1x.png')} 
+        />
         <Text style={styles.title}>
-          Account Balance: 
+          Full Ethereum Wallet, Coming soon!
         </Text>
       </View>
     );
@@ -41,11 +45,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#343a40',
   },
   title: {
-    fontSize: 20,
+    fontSize: 40,
     textAlign: 'center',
     margin: 10,
+    color: 'white'
   }
 });

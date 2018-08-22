@@ -4,9 +4,10 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
-  Linking
+  Linking,
+  Image
 } from 'react-native';
+import { Button } from 'react-native-elements';
 import { BleManager } from 'react-native-ble-plx';
 import '../../global.js'; 
 import { BigNumber } from 'bignumber.js'; 
@@ -25,7 +26,9 @@ export default class SignTx extends Component {
       value: 0,
       nonce: 15,
       qrval: 0,
-      txHashUrl: ""
+      txHashUrl: "",
+      isLoading: false,
+      pay: "Pay"
     }
   }
 
@@ -136,9 +139,9 @@ export default class SignTx extends Component {
   }
 
   sendTx = () => {
+    this.setState({isLoading: true, pay: ""});
     this.manager.writeCharacteristicWithResponseForDevice(this.state.deviceId, '12ab', '34cd', this.state.trans)
       .then((characteristic) => {
-        console.log(characteristic.value);
         this.setState({ nonce: parseInt(this.state.nonce) + 1 });
         this.storeData();
         setTimeout(() => {
@@ -152,9 +155,9 @@ export default class SignTx extends Component {
   }
 
   readTxHash = () => {
+    this.setState({isLoading: false, pay: "Pay"});
     this.manager.readCharacteristicForDevice(this.state.deviceId, '12ab', '34cd') 
       .then((characteristic) => {
-        console.log(characteristic.value);
         this.setState({ info: characteristic.value });
         let res = Buffer.from(characteristic.value, 'base64').toString('ascii');
         this.manager.destroy();
@@ -169,30 +172,31 @@ export default class SignTx extends Component {
   render() {
     return (
       <View style={styles.container}>
+        <Image 
+          source={require('../assets/images/eth_logo.png')} 
+          style={styles.img}
+        />
         <Text style={styles.title}>
-          info: {this.state.info}
-        </Text>
-        <Text style={styles.title}>
-          Value: {this.state.value}
-        </Text>
-        <Text style={styles.title}>
-          Device Id: {this.state.deviceId}
-        </Text>
-        <Text style={styles.title}>
-          Value in Wei: {this.state.qrval}
-        </Text>
-        <Text style={styles.title}>
-          Nonce: {this.state.nonce}
-        </Text>
-        <Text style={styles.title}>
-          Serialize: {this.state.serialize}
+          Value: {this.state.value} ETH
         </Text>
         <Button
-          title="Pay"
+          title={this.state.pay}
           onPress={this.sendTx}
+          loading={this.state.isLoading}
+          loadingProps={{ size: "large", color: "rgba(111, 202, 186, 1)" }}
+          titleStyle={{ fontWeight: "700" }}
+          buttonStyle={{
+            backgroundColor: "#7986CC",
+            width: 300,
+            height: 45,
+            borderColor: "transparent",
+            borderWidth: 0,
+            borderRadius: 5,
+            marginBottom: 15
+          }}
         />
         <Button
-          title="Back To Pay"
+          title="Back To QR Scanner"
           onPress={this.destroyAndGoBack}
         />
       </View>
@@ -208,8 +212,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   title: {
-    fontSize: 20,
+    fontSize: 40,
     textAlign: 'center',
-    margin: 10,
+    marginTop: 50,
+    marginBottom: 100,
+  },
+  img: {
+    width: 250,
+    height: 250
   }
 });
